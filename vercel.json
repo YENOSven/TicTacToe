@@ -3,7 +3,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/missing-page.html"
+      "dest": "/api/not-found"
     }
   ]
 }
