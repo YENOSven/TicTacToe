@@ -146,7 +146,7 @@
         for (let c = 0; c < state.boardSize; c++) {
           if (positionIsEmpty(r, c)) {
             state.board[r][c] = symbol;
-            const key = boardKey();
+            const key = boardKey(symbol);
             let reply;
             if (winner(symbol) || isDraw(opponent, state.emptySlots) || level >= state.maxDepth) {
               reply = { score: evaluate(symbol, state.emptySlots), row: r, col: c };
@@ -215,7 +215,7 @@
             (symbol === HUMAN && isHumanTile(r, c))) {
           state.board[r][c] = EMPTY;
           state.board[emptyRow][emptyCol] = symbol;
-          const key = boardKey();
+          const key = boardKey(symbol);
           let reply;
           if (winner(symbol) || isDraw(opponent, state.emptySlots) || level >= state.maxDepth) {
             reply = { score: evaluate(symbol, state.emptySlots), row: r, col: c };
@@ -313,30 +313,50 @@
   }
 
   function winner(symbol) {
-    for (let r = 0; r < state.boardSize; r++) {
-      let rowWin = true;
-      for (let c = 0; c < state.boardSize; c++) {
-        if (state.board[r][c] !== symbol) { rowWin = false; break; }
+    const target = 3;
+    const n = state.boardSize;
+
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c <= n - target; c++) {
+        let win = true;
+        for (let k = 0; k < target; k++) {
+          if (state.board[r][c + k] !== symbol) { win = false; break; }
+        }
+        if (win) return true;
       }
-      if (rowWin) return true;
     }
-    for (let c = 0; c < state.boardSize; c++) {
-      let colWin = true;
-      for (let r = 0; r < state.boardSize; r++) {
-        if (state.board[r][c] !== symbol) { colWin = false; break; }
+
+    for (let c = 0; c < n; c++) {
+      for (let r = 0; r <= n - target; r++) {
+        let win = true;
+        for (let k = 0; k < target; k++) {
+          if (state.board[r + k][c] !== symbol) { win = false; break; }
+        }
+        if (win) return true;
       }
-      if (colWin) return true;
     }
-    let diag = true;
-    for (let i = 0; i < state.boardSize; i++) {
-      if (state.board[i][i] !== symbol) { diag = false; break; }
+
+    for (let r = 0; r <= n - target; r++) {
+      for (let c = 0; c <= n - target; c++) {
+        let win = true;
+        for (let k = 0; k < target; k++) {
+          if (state.board[r + k][c + k] !== symbol) { win = false; break; }
+        }
+        if (win) return true;
+      }
     }
-    if (diag) return true;
-    let anti = true;
-    for (let i = 0; i < state.boardSize; i++) {
-      if (state.board[i][state.boardSize - 1 - i] !== symbol) { anti = false; break; }
+
+    for (let r = 0; r <= n - target; r++) {
+      for (let c = target - 1; c < n; c++) {
+        let win = true;
+        for (let k = 0; k < target; k++) {
+          if (state.board[r + k][c - k] !== symbol) { win = false; break; }
+        }
+        if (win) return true;
+      }
     }
-    return anti;
+
+    return false;
   }
 
   function hasAdjacentSymbol(r, c, symbol) {
@@ -383,8 +403,8 @@
     return 1;
   }
 
-  function boardKey() {
-    let out = "";
+  function boardKey(symbol) {
+    let out = symbol + ":";
     for (let r = 0; r < state.boardSize; r++) {
       for (let c = 0; c < state.boardSize; c++) {
         out += state.board[r][c];
